@@ -5,7 +5,7 @@
 	"license": "UNLICENSED",
 	"bin": {
 		"acerCodingChallenge": "index.js",
-		"acc" : "index.js"
+		"acc": "index.js"
 	},
 	"author": {
 		"name": "Wen Lau",
@@ -30,6 +30,7 @@
 		"cli-handle-unhandled": "^1.1.1",
 		"cli-meow-help": "^2.0.2",
 		"cli-welcome": "^2.2.2",
+		"date-and-time": "^2.3.0",
 		"meow": "^9.0.0"
 	},
 	"devDependencies": {

@@ -23,6 +23,11 @@ const readline = require('readline').createInterface({
 /* Used to query data from JSON files to be parsed */
 const fs = require('fs');
 
+/* Used to parse dates and get date ordinals */
+const dateTime = require('date-and-time');
+const dateTimeOrdinal = require('date-and-time/plugin/ordinal');
+dateTime.plugin(dateTimeOrdinal);
+
 /* Define array of objects containing each report type */
 const reportTypes = [
 	{
@@ -51,6 +56,11 @@ const students = JSON.parse(studentData);
 
 const studentResponseData = fs.readFileSync('./data/student-responses.json');
 const studentResponses = JSON.parse(studentResponseData);
+/* Used to get most recent completed assessment */
+const studentResponsesCopy = studentResponses.slice();
+const studentResponsesCompletedDateSortedDesc = studentResponsesCopy.sort(function (a, b) {
+	return b.completed.localeCompare(a.completed);
+});
 
 /* Initially define null variables for the matched students and report types against user inputs */
 let selectedStudent = null;
@@ -74,7 +84,101 @@ let selectedReport = null;
 					if (typeof selectedReport !== 'undefined') {
 						/* After finding matching report type, set variable for report type description */
 						let selectedReportDescription = selectedReport.description;
-						console.log('Generating ' + selectedReportDescription + ' report for ' + selectedStudentFullName + '.');
+						/* Get the most recent assessment (used in reports 1 and 3) */
+						let selectedAssessmentMostRecent = studentResponsesCompletedDateSortedDesc.find(
+							studentResponse =>
+								studentResponse.student.id === studentID
+								&& typeof studentResponse.completed !== 'undefined'
+						);
+						/* Get assessment name */
+						let selectedAssessmentMostRecentAssessment = assessments.find(assessment => assessment.id === selectedAssessmentMostRecent.assessmentId);
+						let selectedAssessmentMostRecentAssessmentName = selectedAssessmentMostRecentAssessment.name;
+						/* Convert assessment completion date into date format */
+						let selectedAssessmentMostRecentAssessmentDate = dateTime.parse(selectedAssessmentMostRecent.completed, 'DD/MM/YYYY HH:mm:ss');
+						let selectedAssessmentMostRecentAssessmentFormattedDate = dateTime.format(selectedAssessmentMostRecentAssessmentDate, 'DDD MMMM YYYY hh:mm A');
+						/* Get student raw score */
+						let selectedAssessmentMostRecentRawScore = selectedAssessmentMostRecent.results.rawScore;
+						/* Get total question number of assessment */
+						let selectedAssessmentMostRecentTotalQuestions = selectedAssessmentMostRecent.responses.length;
+
+						if (selectedReportDescription === 'Diagnostic') {
+							console.log(selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
+								+ selectedAssessmentMostRecentAssessmentFormattedDate + '\n'
+								+ 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '.'
+								+ 'Details by strand given below: \n' + ''
+							);
+						} else
+						if (selectedReportDescription === 'Progress') {
+							/* Get only the assessments that match the student */
+							let studentAssessments = studentResponses.filter(
+								studentResponse =>
+									studentResponse.student.id === studentID
+									&& typeof studentResponse.completed !== 'undefined'
+							);
+							/* Get count for each type of assessment the student took, as well as other variables to be used in the output */
+							let studentAssessmentRecords = [];
+							studentAssessments.forEach((studentAssessment) => {
+								let matchedAssessmentIndex = studentAssessmentRecords.findIndex(assessmentType => assessmentType.assessmentId === studentAssessment.assessmentId);
+								/* If the assessment type has already been counted before, then add to the existing count */
+								if (matchedAssessmentIndex !== -1) {
+									++studentAssessmentRecords[matchedAssessmentIndex].count;
+								}
+								else {
+									/* If the assessment type has not been counted before, add a new count for the assessment type as well as variables to be used for output */
+									studentAssessmentRecords.push({
+										'assessmentId': studentAssessment.assessmentId,
+										'assessmentType': assessments.find(assessment => assessment.id === studentAssessment.assessmentId).name,
+										'count': 1,
+										'output': null,
+										'oldestScore': null,
+										'newestScore': null,
+										'totalQuestions': studentAssessment.responses.length,
+										'indivAssessments': []
+									});
+									matchedAssessmentIndex = studentAssessmentRecords.findIndex(assessmentType => assessmentType.assessmentId === studentAssessment.assessmentId);
+								}
+								/* Store the completed date and raw score for each assessment to be used in the output */
+								studentAssessmentRecords[matchedAssessmentIndex].indivAssessments.push({
+									'completed': studentAssessment.completed,
+									'rawScore': studentAssessment.results.rawScore
+								});
+							});
+
+							/* Setup output for each type of assessment */
+							studentAssessmentRecords.forEach((studentAssessmentRecord) => {
+								studentAssessmentRecord.output = '\n' + selectedStudentFullName + ' has completed ' + studentAssessmentRecord.assessmentType + ' assessment '
+									+ studentAssessmentRecord.count + ' times in total. Date and raw score given below: \n \n';
+								studentAssessmentRecord.indivAssessments.forEach((indivAssessment) => {
+									/* Only the oldest assessment will be the oldest score, newest score will be updated if there is a newer assessment */
+									if (studentAssessmentRecord.oldestScore === null) {
+										studentAssessmentRecord.oldestScore = parseInt(indivAssessment.rawScore);
+									}
+									studentAssessmentRecord.newestScore = parseInt(indivAssessment.rawScore);
+									/* Convert assessment completion date into date format */
+									let indivAssessmentDate = dateTime.parse(indivAssessment.completed, 'DD/MM/YYYY HH:mm:ss');
+									let indivAssessmentFormattedDate = dateTime.format(indivAssessmentDate, 'DDD MMMM YYYY');
+									/* For each assessment, output the date and raw score */
+									studentAssessmentRecord.output += 'Date: ' + indivAssessmentFormattedDate + ', Raw Score: '
+										+ indivAssessment.rawScore + ' out of ' + studentAssessmentRecord.totalQuestions + '\n';
+								});
+								/* Check if progress has been positive or negative and add to the output */
+								let scoreProgress = studentAssessmentRecord.newestScore - studentAssessmentRecord.oldestScore;
+								studentAssessmentRecord.output += '\n' + selectedStudentFullName + ' got ' + scoreProgress;
+								if (scoreProgress > 0) {
+									studentAssessmentRecord.output += ' more ';
+								} else {
+									studentAssessmentRecord.output += ' less ';
+								}
+								studentAssessmentRecord.output += 'correct in the recent completed assessment than the oldest.'
+								console.log(studentAssessmentRecord.output);
+							});	
+						} else {
+							console.log(selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
+								+ selectedAssessmentMostRecentAssessmentFormattedDate + '\n'
+								+ 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '.'
+								+ 'Feedback for wrong answers given below: \n' + ''
+							);
+						}
 					} else {
 						/* User input report type could not be found */
 						console.log('The report type selected to generate does not exist.');
