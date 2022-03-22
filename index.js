@@ -102,11 +102,35 @@ let selectedReport = null;
 						let selectedAssessmentMostRecentTotalQuestions = selectedAssessmentMostRecent.responses.length;
 
 						if (selectedReportDescription === 'Diagnostic') {
-							console.log(selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
+							let assessmentStrands = [];
+							selectedAssessmentMostRecent.responses.forEach((questionResponse) => {
+								/* For each question, categorise according to strand and set variables to be used for output */
+								let matchingQuestion = questions.find(question => question.id === questionResponse.questionId);
+								let matchedStrandsIndex = assessmentStrands.findIndex(strand => strand.strand === matchingQuestion.strand);
+								if (matchedStrandsIndex === -1) {
+									assessmentStrands.push({
+										'strand': matchingQuestion.strand,
+										'totalQuestions': 1,
+										'noCorrect': 0,
+									});
+									matchedStrandsIndex = assessmentStrands.findIndex(strand => strand.strand === matchingQuestion.strand);
+								} else {
+									++assessmentStrands[matchedStrandsIndex].totalQuestions;
+								}
+								/* Check if the student response to the question was correct and add to the correct count if so */
+								let isResponseCorrect = questionResponse.response === matchingQuestion.config.key ? 1 : 0;
+								if (isResponseCorrect) {
+									++assessmentStrands[matchedStrandsIndex].noCorrect;
+                                }
+							});
+							let diagnosticReportOutput = '\n' + selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
 								+ selectedAssessmentMostRecentAssessmentFormattedDate + '\n'
-								+ 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '.'
-								+ 'Details by strand given below: \n' + ''
-							);
+								+ 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '. '
+								+ 'Details by strand given below: \n \n';
+							assessmentStrands.forEach((assessmentStrand) => {
+								diagnosticReportOutput += assessmentStrand.strand + ': ' + assessmentStrand.noCorrect + ' out of ' + assessmentStrand.totalQuestions + '\n';
+							});
+							console.log(diagnosticReportOutput);
 						} else
 						if (selectedReportDescription === 'Progress') {
 							/* Get only the assessments that match the student */
