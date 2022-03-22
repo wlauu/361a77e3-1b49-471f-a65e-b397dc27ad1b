@@ -270,9 +270,6 @@ function redo() {
 	input.includes(`help`) && cli.showHelp(0);
 	debug && log(flags);
 
-	/* Starting the app - pass in "start" parameter */
-	if (input.includes('start')) {
-		startApp();
-	};
+	startApp();
 })();
 
