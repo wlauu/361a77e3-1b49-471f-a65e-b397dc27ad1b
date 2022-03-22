@@ -102,6 +102,7 @@ let selectedReport = null;
 						let selectedAssessmentMostRecentTotalQuestions = selectedAssessmentMostRecent.responses.length;
 
 						if (selectedReportDescription === 'Diagnostic') {
+							/* Diagnostic report */
 							let assessmentStrands = [];
 							selectedAssessmentMostRecent.responses.forEach((questionResponse) => {
 								/* For each question, categorise according to strand and set variables to be used for output */
@@ -132,7 +133,8 @@ let selectedReport = null;
 							});
 							console.log(diagnosticReportOutput);
 						} else
-						if (selectedReportDescription === 'Progress') {
+							if (selectedReportDescription === 'Progress') {
+							/* Progress report */
 							/* Get only the assessments that match the student */
 							let studentAssessments = studentResponses.filter(
 								studentResponse =>
@@ -197,11 +199,37 @@ let selectedReport = null;
 								console.log(studentAssessmentRecord.output);
 							});	
 						} else {
-							console.log(selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
-								+ selectedAssessmentMostRecentAssessmentFormattedDate + '\n'
-								+ 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '.'
-								+ 'Feedback for wrong answers given below: \n' + ''
-							);
+							/* Feedback report */
+							let assessmentIncorrectQuestions = [];
+							selectedAssessmentMostRecent.responses.forEach((questionResponse) => {
+								/* For each question, check if student response was correct, and if not, add that question for output */
+								let matchingQuestion = questions.find(question => question.id === questionResponse.questionId);
+								if (questionResponse.response !== matchingQuestion.config.key) {
+									assessmentIncorrectQuestions.push({
+										'question': matchingQuestion.stem,
+										'studentResponse': matchingQuestion.config.options.find(option => option.id === questionResponse.response),
+										'correctResponse': matchingQuestion.config.options.find(option => option.id === matchingQuestion.config.key),
+										'hint': matchingQuestion.config.hint
+									});
+                                }
+							});
+							let feedbackReportOutput = '\n' + selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
+								+ selectedAssessmentMostRecentAssessmentFormattedDate + '\n';
+							if (assessmentIncorrectQuestions.length > 0) {
+								/* If at least one incorrect question exists, output incorrect questions for report. */
+								feedbackReportOutput += 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '. '
+									+ 'Feedback for wrong answers given below: \n \n';
+								assessmentIncorrectQuestions.forEach((incorrectQuestion) => {
+									feedbackReportOutput += 'Question: ' + incorrectQuestion.question + '\n'
+										+ 'Your answer: ' + incorrectQuestion.studentResponse.label + ' with value ' + incorrectQuestion.studentResponse.value + '\n'
+										+ 'Right answer: ' + incorrectQuestion.correctResponse.label + ' with value ' + incorrectQuestion.correctResponse.value + '\n'
+										+ 'Hint: ' + incorrectQuestion.hint + '\n \n';
+								});
+							} else {
+								/* All questions in the assessment were answered correctly. */
+								feedbackReportOutput += 'He got all questions right.';
+                            }
+							console.log(feedbackReportOutput);
 						}
 					} else {
 						/* User input report type could not be found */
