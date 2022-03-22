@@ -4,7 +4,8 @@
 	"version": "0.0.1",
 	"license": "UNLICENSED",
 	"bin": {
-		"acerCodingChallenge": "index.js"
+		"acerCodingChallenge": "index.js",
+		"acc" : "index.js"
 	},
 	"author": {
 		"name": "Wen Lau",
@@ -20,7 +21,7 @@
 		"utils"
 	],
 	"scripts": {
-		"format": "prettier --write \"./**/*.{js,json}\"",
+		"format": "prettier --write \"./**/*.{js,json}\""
 	},
 	"dependencies": {
 		"chalk": "^5.0.1",
