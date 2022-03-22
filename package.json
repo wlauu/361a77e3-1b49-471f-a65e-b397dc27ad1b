@@ -5,7 +5,8 @@
 	"license": "UNLICENSED",
 	"bin": {
 		"acerCodingChallenge": "index.js",
-		"acc": "index.js"
+		"acc": "index.js",
+		"app": "index.js"
 	},
 	"author": {
 		"name": "Wen Lau",

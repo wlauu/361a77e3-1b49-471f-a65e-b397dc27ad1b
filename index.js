@@ -66,74 +66,73 @@ const studentResponsesCompletedDateSortedDesc = studentResponsesCopy.sort(functi
 let selectedStudent = null;
 let selectedReport = null;
 
-(async () => {
-	init({ clear });
-	input.includes(`help`) && cli.showHelp(0);
-	debug && log(flags);
+function startApp() {
+	/* Ask user for student ID */
+	readline.question('Please enter the following \nStudent ID: ', (studentID) => {
+		selectedStudent = students.find(student => student.id === studentID);
+		if (typeof selectedStudent !== 'undefined') {
+			/* After finding matching student, set variable for student full name and ask user for report type */
+			let selectedStudentFullName = selectedStudent.firstName + ' ' + selectedStudent.lastName;
+			readline.question('Report to generate (1 for Diagnostic, 2 for Progress, 3 for Feedback): ', (reportID) => {
+				selectedReport = reportTypes.find(report => report.id === reportID);
+				if (typeof selectedReport !== 'undefined') {
+					/* After finding matching report type, set variable for report type description */
+					let selectedReportDescription = selectedReport.description;
+					/* Get the most recent assessment (used in reports 1 and 3) */
+					let selectedAssessmentMostRecent = studentResponsesCompletedDateSortedDesc.find(
+						studentResponse =>
+							studentResponse.student.id === studentID
+							&& typeof studentResponse.completed !== 'undefined'
+					);
+					/* Get assessment name */
+					let selectedAssessmentMostRecentAssessment = assessments.find(assessment => assessment.id === selectedAssessmentMostRecent.assessmentId);
+					let selectedAssessmentMostRecentAssessmentName = selectedAssessmentMostRecentAssessment.name;
+					/* Convert assessment completion date into date format */
+					let selectedAssessmentMostRecentAssessmentDate = dateTime.parse(selectedAssessmentMostRecent.completed, 'DD/MM/YYYY HH:mm:ss');
+					let selectedAssessmentMostRecentAssessmentFormattedDate = dateTime.format(selectedAssessmentMostRecentAssessmentDate, 'DDD MMMM YYYY hh:mm A');
+					/* Get student raw score */
+					let selectedAssessmentMostRecentRawScore = selectedAssessmentMostRecent.results.rawScore;
+					/* Get total question number of assessment */
+					let selectedAssessmentMostRecentTotalQuestions = selectedAssessmentMostRecent.responses.length;
 
-	/* Starting the app - pass in "start" parameter */
-	if (input.includes('start')) {
-		/* Ask user for student ID */
-		readline.question('Please enter the following \nStudent ID: ', (studentID) => {
-			selectedStudent = students.find(student => student.id === studentID);
-			if (typeof selectedStudent !== 'undefined') {
-				/* After finding matching student, set variable for student full name and ask user for report type */
-				let selectedStudentFullName = selectedStudent.firstName + ' ' + selectedStudent.lastName;
-				readline.question('Report to generate (1 for Diagnostic, 2 for Progress, 3 for Feedback): ', (reportID) => {
-					selectedReport = reportTypes.find(report => report.id === reportID);
-					if (typeof selectedReport !== 'undefined') {
-						/* After finding matching report type, set variable for report type description */
-						let selectedReportDescription = selectedReport.description;
-						/* Get the most recent assessment (used in reports 1 and 3) */
-						let selectedAssessmentMostRecent = studentResponsesCompletedDateSortedDesc.find(
-							studentResponse =>
-								studentResponse.student.id === studentID
-								&& typeof studentResponse.completed !== 'undefined'
-						);
-						/* Get assessment name */
-						let selectedAssessmentMostRecentAssessment = assessments.find(assessment => assessment.id === selectedAssessmentMostRecent.assessmentId);
-						let selectedAssessmentMostRecentAssessmentName = selectedAssessmentMostRecentAssessment.name;
-						/* Convert assessment completion date into date format */
-						let selectedAssessmentMostRecentAssessmentDate = dateTime.parse(selectedAssessmentMostRecent.completed, 'DD/MM/YYYY HH:mm:ss');
-						let selectedAssessmentMostRecentAssessmentFormattedDate = dateTime.format(selectedAssessmentMostRecentAssessmentDate, 'DDD MMMM YYYY hh:mm A');
-						/* Get student raw score */
-						let selectedAssessmentMostRecentRawScore = selectedAssessmentMostRecent.results.rawScore;
-						/* Get total question number of assessment */
-						let selectedAssessmentMostRecentTotalQuestions = selectedAssessmentMostRecent.responses.length;
-
-						if (selectedReportDescription === 'Diagnostic') {
-							/* Diagnostic report */
-							let assessmentStrands = [];
-							selectedAssessmentMostRecent.responses.forEach((questionResponse) => {
-								/* For each question, categorise according to strand and set variables to be used for output */
-								let matchingQuestion = questions.find(question => question.id === questionResponse.questionId);
-								let matchedStrandsIndex = assessmentStrands.findIndex(strand => strand.strand === matchingQuestion.strand);
-								if (matchedStrandsIndex === -1) {
-									assessmentStrands.push({
-										'strand': matchingQuestion.strand,
-										'totalQuestions': 1,
-										'noCorrect': 0,
-									});
-									matchedStrandsIndex = assessmentStrands.findIndex(strand => strand.strand === matchingQuestion.strand);
-								} else {
-									++assessmentStrands[matchedStrandsIndex].totalQuestions;
-								}
-								/* Check if the student response to the question was correct and add to the correct count if so */
-								let isResponseCorrect = questionResponse.response === matchingQuestion.config.key ? 1 : 0;
-								if (isResponseCorrect) {
-									++assessmentStrands[matchedStrandsIndex].noCorrect;
-                                }
-							});
-							let diagnosticReportOutput = '\n' + selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
-								+ selectedAssessmentMostRecentAssessmentFormattedDate + '\n'
-								+ 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '. '
-								+ 'Details by strand given below: \n \n';
-							assessmentStrands.forEach((assessmentStrand) => {
-								diagnosticReportOutput += assessmentStrand.strand + ': ' + assessmentStrand.noCorrect + ' out of ' + assessmentStrand.totalQuestions + '\n';
-							});
-							console.log(diagnosticReportOutput);
-						} else
-							if (selectedReportDescription === 'Progress') {
+					if (selectedReportDescription === 'Diagnostic') {
+						/* Diagnostic report */
+						let assessmentStrands = [];
+						selectedAssessmentMostRecent.responses.forEach((questionResponse) => {
+							/* For each question, categorise according to strand and set variables to be used for output */
+							let matchingQuestion = questions.find(question => question.id === questionResponse.questionId);
+							let matchedStrandsIndex = assessmentStrands.findIndex(strand => strand.strand === matchingQuestion.strand);
+							if (matchedStrandsIndex === -1) {
+								assessmentStrands.push({
+									'strand': matchingQuestion.strand,
+									'totalQuestions': 1,
+									'noCorrect': 0,
+								});
+								matchedStrandsIndex = assessmentStrands.findIndex(strand => strand.strand === matchingQuestion.strand);
+							} else {
+								++assessmentStrands[matchedStrandsIndex].totalQuestions;
+							}
+							/* Check if the student response to the question was correct and add to the correct count if so */
+							let isResponseCorrect = questionResponse.response === matchingQuestion.config.key ? 1 : 0;
+							if (isResponseCorrect) {
+								++assessmentStrands[matchedStrandsIndex].noCorrect;
+							}
+						});
+						let diagnosticReportOutput = '\n' + selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
+							+ selectedAssessmentMostRecentAssessmentFormattedDate + '\n'
+							+ 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '. '
+							+ 'Details by strand given below: \n \n';
+						assessmentStrands.forEach((assessmentStrand, assessmentStrandIndex, assessmentStrandArray) => {
+							diagnosticReportOutput += assessmentStrand.strand + ': ' + assessmentStrand.noCorrect + ' out of ' + assessmentStrand.totalQuestions;
+							/* Extra line break added if not the last assessment strand */
+							if (assessmentStrandIndex !== assessmentStrandArray.length - 1) {
+								diagnosticReportOutput += '\n';
+                            }
+						});
+						console.log(diagnosticReportOutput);
+						redo();
+					} else
+						if (selectedReportDescription === 'Progress') {
 							/* Progress report */
 							/* Get only the assessments that match the student */
 							let studentAssessments = studentResponses.filter(
@@ -171,7 +170,7 @@ let selectedReport = null;
 							});
 
 							/* Setup output for each type of assessment */
-							studentAssessmentRecords.forEach((studentAssessmentRecord) => {
+							studentAssessmentRecords.forEach((studentAssessmentRecord, studentAssessmentRecordIndex, studentAssessmentRecordArray) => {
 								studentAssessmentRecord.output = '\n' + selectedStudentFullName + ' has completed ' + studentAssessmentRecord.assessmentType + ' assessment '
 									+ studentAssessmentRecord.count + ' times in total. Date and raw score given below: \n \n';
 								studentAssessmentRecord.indivAssessments.forEach((indivAssessment) => {
@@ -197,7 +196,12 @@ let selectedReport = null;
 								}
 								studentAssessmentRecord.output += 'correct in the recent completed assessment than the oldest.'
 								console.log(studentAssessmentRecord.output);
-							});	
+								/* Extra line break added if not the last assessment type */
+								if (studentAssessmentRecordIndex !== studentAssessmentRecordArray.length - 1) {
+									console.log('\n');
+                                }
+							});
+							redo();
 						} else {
 							/* Feedback report */
 							let assessmentIncorrectQuestions = [];
@@ -211,7 +215,7 @@ let selectedReport = null;
 										'correctResponse': matchingQuestion.config.options.find(option => option.id === matchingQuestion.config.key),
 										'hint': matchingQuestion.config.hint
 									});
-                                }
+								}
 							});
 							let feedbackReportOutput = '\n' + selectedStudentFullName + ' recently completed ' + selectedAssessmentMostRecentAssessmentName + ' assessment on '
 								+ selectedAssessmentMostRecentAssessmentFormattedDate + '\n';
@@ -219,28 +223,56 @@ let selectedReport = null;
 								/* If at least one incorrect question exists, output incorrect questions for report. */
 								feedbackReportOutput += 'He got ' + selectedAssessmentMostRecentRawScore + ' questions right out of ' + selectedAssessmentMostRecentTotalQuestions + '. '
 									+ 'Feedback for wrong answers given below: \n \n';
-								assessmentIncorrectQuestions.forEach((incorrectQuestion) => {
+								assessmentIncorrectQuestions.forEach((incorrectQuestion, incorrectQuestionIndex, incorrectQuestionArray) => {
 									feedbackReportOutput += 'Question: ' + incorrectQuestion.question + '\n'
 										+ 'Your answer: ' + incorrectQuestion.studentResponse.label + ' with value ' + incorrectQuestion.studentResponse.value + '\n'
 										+ 'Right answer: ' + incorrectQuestion.correctResponse.label + ' with value ' + incorrectQuestion.correctResponse.value + '\n'
-										+ 'Hint: ' + incorrectQuestion.hint + '\n \n';
+										+ 'Hint: ' + incorrectQuestion.hint;
+									if (incorrectQuestionIndex !== incorrectQuestionArray.length - 1) {
+										feedbackReportOutput += '\n \n';
+									}
 								});
 							} else {
 								/* All questions in the assessment were answered correctly. */
 								feedbackReportOutput += 'He got all questions right.';
-                            }
+							}
 							console.log(feedbackReportOutput);
+							redo();
 						}
-					} else {
-						/* User input report type could not be found */
-						console.log('The report type selected to generate does not exist.');
-					}
-				});
-			} else {
-				/* User input student ID could not be found */
-				console.log('The student ID entered does not exist.');
-			};
-		});
+				} else {
+					/* User input report type could not be found */
+					console.log('The report type selected to generate does not exist.');
+					redo();
+				}
+			});
+		} else {
+			/* User input student ID could not be found */
+			console.log('The student ID entered does not exist.');
+			redo();
+		};
+	});
+}
+
+function redo() {
+	readline.question('\nDo you wish to generate another report: (y for Yes, otherwise No): ', (continueInput) => {
+		if (continueInput.toLowerCase() !== 'y') {
+			process.exit();
+		} else {
+			selectedStudent = null;
+			selectedReport = null;
+			startApp();
+		}
+	});
+}
+
+(async () => {
+	init({ clear });
+	input.includes(`help`) && cli.showHelp(0);
+	debug && log(flags);
+
+	/* Starting the app - pass in "start" parameter */
+	if (input.includes('start')) {
+		startApp();
 	};
 })();
 
