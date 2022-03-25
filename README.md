@@ -50,6 +50,6 @@ If the report selected to be generated is "Feedback", then the following will be
 <b>4.</b> Upon successfully generating a report, you will be asked if you wish to generate another report.  
 Saying "y" for yes will start the process again, otherwise you will exit the program.
 
-<h1>TESTING THE APPLICATION</h1>
+<h1>Testing the application</h1>
 
-Some unit tests have been set up for the three user inputs, using Jest. The testing script can be run with "run npm test", and tests both a valid input as well as an invalid input.
+Some unit tests have been set up for the three user inputs (studentID, reportID and redo), using Jest. The testing script can be run with "run npm test", and tests both a valid input as well as an invalid input.
