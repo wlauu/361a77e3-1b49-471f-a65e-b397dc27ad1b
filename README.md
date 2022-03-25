@@ -1,9 +1,10 @@
 # 361a77e3-1b49-471f-a65e-b397dc27ad1b
 ACER Coding Challenge
 
-Firstly, please ensure that JavaScript files (.js file extension) are opened with Node.js.
+Firstly, please ensure that NodeJS is installed (the installer can be found online at nodejs.org. 
 To start the CLI application, open a Command Line interpreter such as Windows Command Prompt (cmd.exe) or Windows PowerShell.
-Redirect to the directory root of the CLI application.
+Redirect to the directory root of the CLI application
+Before running the application, type in "npm update" to ensure all required JavaScript packages have been installed as otherwise the application will not run.
 
 --RUNNING THE APPLICATION--
 
