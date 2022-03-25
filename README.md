@@ -52,4 +52,4 @@ Saying "y" for yes will start the process again, otherwise you will exit the pro
 
 <h1>Testing the application</h1>
 
-Some unit tests have been set up for the three user inputs (studentID, reportID and redo), using Jest. The testing script can be run with "run npm test", and tests both a valid input as well as an invalid input.
+Some unit tests have been set up for the three user inputs (studentID, reportID and redo), using Jest. The testing script can be run with "npm run test", and tests both a valid input as well as an invalid input.
