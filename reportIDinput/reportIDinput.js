@@ -21,8 +21,16 @@ const reportTypes = [
 
 // Initially define null variables for the matched report types against user input
 let selectedReport = null;
+let selectedReportUsingDescription = null;
 
 let errorMessage = 'Provided report type is invalid';
+
+function fixDescription(string) {
+    //Trim whitepsace
+    string = string.trim();
+    //Return string with capitalised first letter, the rest as lower case
+    return string[0].toUpperCase() + string.slice(1).toLowerCase();
+};
 
 const reportIDinput = () => {
     return new Promise((resolve, reject) => {
@@ -35,7 +43,15 @@ const reportIDinput = () => {
             selectedReport = reportTypes.find(report => report.id === reportID.trim());
             rl.close();
             if (typeof selectedReport === 'undefined') {
-                reject(errorMessage);
+                //Check if user entered description instead
+                reportID = 
+                    selectedReportUsingDescription = reportTypes.find(report => report.description === fixDescription(reportID));
+                if (typeof selectedReportUsingDescription === 'undefined') {
+                    reject(errorMessage);
+                } else {
+                    reportID = selectedReportUsingDescription.id;
+                    resolve(reportID);
+                }
             } else {
                 resolve(reportID);
             }

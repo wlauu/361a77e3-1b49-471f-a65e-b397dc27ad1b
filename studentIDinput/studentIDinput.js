@@ -14,6 +14,13 @@ let selectedStudent = null;
 
 let errorMessage = '\r\nProvided student ID is invalid';
 
+function fixDescription(string) {
+    //Trim whitepsace
+    string = string.trim();
+    //Return string with all lower case letters
+    return string.toLowerCase();
+}
+
 const studentIDinput = () => {
     return new Promise((resolve, reject) => {
         const rl = readline.createInterface({
@@ -22,7 +29,8 @@ const studentIDinput = () => {
         });
 
         rl.question('Please enter the following\nStudent ID: ', (studentID) => {
-            selectedStudent = students.find(student => student.id === studentID.trim());
+            studentID = fixDescription(studentID);
+            selectedStudent = students.find(student => student.id === studentID);
             rl.close();
             if (typeof selectedStudent === 'undefined') {
                 reject(errorMessage);
