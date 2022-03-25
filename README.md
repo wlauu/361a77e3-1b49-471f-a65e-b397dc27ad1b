@@ -1,2 +1,43 @@
 # 361a77e3-1b49-471f-a65e-b397dc27ad1b
 ACER Coding Challenge
+
+Firstly, please ensure that JavaScript files (.js file extension) are opened with Node.js.
+To start the CLI application, open a Command Line interpreter such as Windows Command Prompt (cmd.exe) or Windows PowerShell.
+Redirect to the directory root of the CLI application.
+
+--RUNNING THE APPLICATION--
+
+To start the CLI application, enter "npm run app".
+Inputting any of the following will also start the CLI application - "acerCodingChallenge", "acc", "app" or "node .\index.js".
+
+Upon starting the CLI application, you will be greeted with a startup message by the application, and then asked to enter a student ID.
+If the student ID entered does not exist, you will be prompted as such.
+If the student ID does exist, you will then be asked to enter a report type ID corresponding to one of 3 different reports.
+
+If the report type ID entered does not match a recognised report, you will be prompted that the report type entered does not exist.
+If the report type ID entered does match one of the recognised report, the report corresponding to the report type ID inputted by the user will be generated for the respective student ID.
+
+If the report selected to be generated is "Diagnostic", then the following will be detailed based on the student's most recent completed assessment':
+- student name 
+- assessment type
+- date of completion
+- number of questions correctly answered for the entire assessment
+- number of questions correctly answered for each strand in the asssessment
+
+If the report selected to be generated is "Progress", then the following will be detailed based on all assessments completed by the student:
+- student name
+- assessment type
+- number of times completing assessment type
+- date of completion for each assessment
+- raw score for each assessment
+- comparing raw score of oldest assessment compared to most recent assessment
+
+If the report selected to be generated is "Feedback", then the following will be detailed based on the student's most recent completed assessment':
+- student name
+- assessment type
+- date of completion
+- breakdown of each question answered incorrectly showing the question, the student's response, the correct response, and the hint for the question
+
+--TESTING THE APPLICATION--
+
+Some unit tests have been set up for the two user inputs, using Jest. The testing script can be run with "run npm test", and tests both a valid input as well as an invalid input.
