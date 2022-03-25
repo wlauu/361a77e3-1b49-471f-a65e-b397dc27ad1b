@@ -15,16 +15,15 @@ const input = cli.input;
 const flags = cli.flags;
 const { clear, debug } = flags;
 
-/* Used for asking questions to the user and getting user inputs */
-/* Used to query data from JSON files to be parsed */
+// Used to query data from JSON files to be parsed
 const fs = require('fs');
 
-/* Used to parse dates and get date ordinals */
+// Used to parse dates and get date ordinals
 const dateTime = require('date-and-time');
 const dateTimeOrdinal = require('date-and-time/plugin/ordinal');
 dateTime.plugin(dateTimeOrdinal);
 
-/* Define array of objects containing each report type */
+// Define array of objects containing each report type
 const reportTypes = [
 	{
 		id: '1',
@@ -40,7 +39,7 @@ const reportTypes = [
 	}
 ];
 
-/* Get data from each JSON file and set to variables for later use */
+// Get data from each JSON file and set to variables for later use
 const assessmentData = fs.readFileSync('./data/assessments.json');
 const assessments = JSON.parse(assessmentData);
 
@@ -52,25 +51,30 @@ const students = JSON.parse(studentData);
 
 const studentResponseData = fs.readFileSync('./data/student-responses.json');
 const studentResponses = JSON.parse(studentResponseData);
-/* Used to get most recent completed assessment */
+// Used to get most recent completed assessment
 const studentResponsesCopy = studentResponses.slice();
 const studentResponsesCompletedDateSortedDesc = studentResponsesCopy.sort(function (a, b) {
 	return b.completed.localeCompare(a.completed);
 });
 
-/* Initially define null variables for the matched students and report types against user inputs */
+// Initially define null variables for the matched students and report types against user inputs
 let selectedStudent = null;
 let selectedReport = null;
 
+//Used to access functions for each user input question
 const {
 	studentIDinput
 } = require('./studentIDinput/studentIDinput');
 const {
 	reportIDinput
 } = require('./reportIDinput/reportIDinput');
+const {
+	redoInput
+} = require('./redoInput/redoInput');
 
 let studentID = null;
 let reportID = null;
+let redoResponse = null;
 
 const index = async () => {
 	try {
@@ -135,7 +139,16 @@ const index = async () => {
 					}
 				});
 				console.log(diagnosticReportOutput);
-				//Add back redo here
+				try {
+					redoResponse = await redoInput();
+					selectedStudent = null;
+					selectedReport = null;
+					studentID = null;
+					reportID = null;
+					index();
+				} catch (e) {
+					console.error(e);
+				}
 			} else
 			if (selectedReportDescription === 'Progress') {
 				// Progress report
@@ -206,7 +219,16 @@ const index = async () => {
 						console.log('\n');
 					}
 				});
-				//Add back redo here
+				try {
+					redoResponse = await redoInput();
+					selectedStudent = null;
+					selectedReport = null;
+					studentID = null;
+					reportID = null;
+					index();
+				} catch (e) {
+					console.error(e);
+				}
 			} else {
 				// Feedback report
 				let assessmentIncorrectQuestions = [];
@@ -242,13 +264,42 @@ const index = async () => {
 					feedbackReportOutput += 'He got all questions right.';
 				}
 				console.log(feedbackReportOutput);
-				//Add back redo here
+				try {
+					redoResponse = await redoInput();
+					selectedStudent = null;
+					selectedReport = null;
+					studentID = null;
+					reportID = null;
+					index();
+				} catch (e) {
+					console.error(e);
+				}
 			}
 		} catch (e) {
 			console.error(e);
+			try {
+				redoResponse = await redoInput();
+				selectedStudent = null;
+				selectedReport = null;
+				studentID = null;
+				reportID = null;
+				index();
+			} catch (e) {
+				console.error(e);
+			}
         }
 	} catch (e) {
 		console.error(e);
+		try {
+			redoResponse = await redoInput();
+			selectedStudent = null;
+			selectedReport = null;
+			studentID = null;
+			reportID = null;
+			index();
+		} catch (e) {
+			console.error(e);
+		}
 	}
 }
 
